@@ -65,3 +65,7 @@ class TelegramScraper:
         with open(f"scraped_data/{channel.replace('https://t.me/', '')}.txt", "a", encoding="utf-8") as file:
             file.write(data + "\n")
 
+    async def download_image(self, message):
+        file_path = await message.download_media("images/")
+        logging.info(f"Downloaded image to {file_path}")
+
