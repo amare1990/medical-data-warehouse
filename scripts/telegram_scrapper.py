@@ -43,3 +43,13 @@ class TelegramScraper:
         await self.client.start()
         logging.info("Telegram client started.")
 
+    async def fetch_messages(self, channel):
+        """Fetches messages from a given Telegram channel."""
+        async with self.client:
+            logging.info(f"Fetching messages from {channel}...")
+            messages = await self.client.get_messages(channel, limit=100)
+            for message in messages:
+                if message.text:
+                    self.data.append(message.text)
+            logging.info(f"Fetched {len(messages)} messages from {channel}.")
+
