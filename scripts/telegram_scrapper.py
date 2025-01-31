@@ -36,3 +36,10 @@ class TelegramScraper:
         os.makedirs(self.main_download_folder, exist_ok=True)  # Ensure folder exists
 
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+
+
+    async def start_client(self):
+        """Starts the Telegram client."""
+        await self.client.start()
+        logging.info("Telegram client started.")
+
