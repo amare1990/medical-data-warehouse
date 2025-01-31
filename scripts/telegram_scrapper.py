@@ -53,3 +53,11 @@ class TelegramScraper:
                     self.data.append(message.text)
             logging.info(f"Fetched {len(messages)} messages from {channel}.")
 
+
+    async def scrape_all_channels(self):
+        """Scrapes all channels asynchronously."""
+        await self.start_client()
+        for channel in self.channels:
+            await self.fetch_messages(channel)
+        logging.info("Scraping completed.")
+
