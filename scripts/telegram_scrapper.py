@@ -61,3 +61,7 @@ class TelegramScraper:
             await self.fetch_messages(channel)
         logging.info("Scraping completed.")
 
+    def store_data(self, channel, data):
+        with open(f"scraped_data/{channel.replace('https://t.me/', '')}.txt", "a", encoding="utf-8") as file:
+            file.write(data + "\n")
+
