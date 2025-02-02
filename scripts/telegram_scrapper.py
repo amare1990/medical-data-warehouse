@@ -13,7 +13,8 @@ nest_asyncio.apply()
 load_dotenv()
 
 class TelegramScraper:
-    def __init__(self, download_folder='downloads', text_data_folder='scraped_data', image_folder='images'):
+    def __init__(self, limit=100):
+        """Initialize the scraper with a set message limit."""
         self.api_id = os.getenv('API_ID')
         self.api_hash = os.getenv('API_HASH')
 
@@ -22,9 +23,23 @@ class TelegramScraper:
 
         self.client = TelegramClient(MemorySession(), self.api_id, self.api_hash)
 
+        # Get absolute path of the "data" folder at the root of your repo
+        self.base_data_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
+
+        # Define subdirectories inside the "data" folder
+        self.download_folder = os.path.join(self.base_data_folder, "downloads")
+        self.text_data_folder = os.path.join(self.base_data_folder, "scraped_data")
+        self.image_folder = os.path.join(self.base_data_folder, "images")
+
+        # Ensure folders exist
+        os.makedirs(self.download_folder, exist_ok=True)
+        os.makedirs(self.text_data_folder, exist_ok=True)
+        os.makedirs(self.image_folder, exist_ok=True)
+
+        # Channels to scrape (only specified ones)
         # Channels to scrape images from
         self.image_channels = {
-            'Chemed_Telegram_Channel': 'Chemed_Telegram_Channel',
+            'Chemed_Telegram_Channel': 'Chemed',
             'lobelia4cosmetics': 'lobelia4cosmetics'
         }
 
@@ -32,18 +47,13 @@ class TelegramScraper:
         self.text_channels = [
             'DoctorsET',
             'yetenaweg',
-            'EAHCI'
+            'EAHCI',
+            'Chemed',
+            'lobelia4cosmetics'
         ]
 
         self.data = []  # List to store text messages
-
-        # Ensure folders exist
-        self.download_folder = download_folder
-        self.text_data_folder = text_data_folder
-        self.image_folder = image_folder
-        os.makedirs(self.download_folder, exist_ok=True)
-        os.makedirs(self.text_data_folder, exist_ok=True)
-        os.makedirs(self.image_folder, exist_ok=True)
+        self.limit = limit  # Number of messages to fetch
 
         # Set up logging
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -51,12 +61,11 @@ class TelegramScraper:
     async def fetch_messages(self, channel, is_image_channel=False):
         """Fetch messages from a Telegram channel, downloading images if applicable."""
         try:
-            logging.info(f"Fetching messages from {channel}...")
-            messages = await self.client.get_messages(channel, limit=100)
+            logging.info(f"Fetching messages from {channel} (Limit: {self.limit})...")
+            messages = await self.client.get_messages(channel, limit=self.limit)
 
             for message in messages:
                 if message.text and not is_image_channel:
-                    self.data.append(message.text)
                     self.store_data(channel, message.text)
 
                 if message.media and is_image_channel:
@@ -97,7 +106,7 @@ class TelegramScraper:
         try:
             if message.file and message.file.ext not in ['.jpg', '.png', '.jpeg', '.gif', '.webp']:
                 logging.info(f"Skipping non-image file: {message.file.name}")
-                return  # Ignore non-image files (e.g., .mp4, .pdf)
+                return
 
             file_path = await message.download_media(self.image_folder)
             logging.info(f"Downloaded image to {file_path}")
