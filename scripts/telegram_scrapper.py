@@ -1,4 +1,3 @@
-# telegram_scraper.py
 import os
 import logging
 import asyncio
@@ -7,7 +6,7 @@ from dotenv import load_dotenv
 from telethon.sessions import MemorySession
 import nest_asyncio
 
-# Apply nested asyncio for Jupyter Notebooks (if needed)
+# Apply nested asyncio (for Jupyter Notebook use cases)
 nest_asyncio.apply()
 
 # Load environment variables
@@ -23,15 +22,20 @@ class TelegramScraper:
 
         self.client = TelegramClient(MemorySession(), self.api_id, self.api_hash)
 
-        # Use Telegram channel usernames (not full URLs)
-        self.channels = [
+        # Channels to scrape images from
+        self.image_channels = {
+            'Chemed_Telegram_Channel': 'Chemed_Telegram_Channel',
+            'lobelia4cosmetics': 'lobelia4cosmetics'
+        }
+
+        # All channels for text messages (optional)
+        self.text_channels = [
             'DoctorsET',
-            'lobelia4cosmetics',
             'yetenaweg',
             'EAHCI'
         ]
 
-        self.data = []  # List to store preprocessed data
+        self.data = []  # List to store text messages
 
         # Ensure folders exist
         self.download_folder = download_folder
@@ -44,18 +48,18 @@ class TelegramScraper:
         # Set up logging
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-    async def fetch_messages(self, channel):
-        """Fetches messages from a given Telegram channel."""
+    async def fetch_messages(self, channel, is_image_channel=False):
+        """Fetch messages from a Telegram channel, downloading images if applicable."""
         try:
             logging.info(f"Fetching messages from {channel}...")
             messages = await self.client.get_messages(channel, limit=100)
 
             for message in messages:
-                if message.text:
+                if message.text and not is_image_channel:
                     self.data.append(message.text)
                     self.store_data(channel, message.text)
 
-                if message.media:
+                if message.media and is_image_channel:
                     await self.download_image(message)
 
             logging.info(f"Fetched {len(messages)} messages from {channel}.")
@@ -63,12 +67,18 @@ class TelegramScraper:
             logging.error(f"Error fetching messages from {channel}: {e}")
 
     async def scrape_all_channels(self):
-        """Scrapes all channels asynchronously."""
+        """Scrapes all text and image channels asynchronously."""
         await self.client.start()
         logging.info("Telegram client started.")
 
-        tasks = [self.fetch_messages(channel) for channel in self.channels]
-        await asyncio.gather(*tasks)
+        # Create tasks for text-only channels
+        text_tasks = [self.fetch_messages(channel) for channel in self.text_channels]
+
+        # Create tasks for image-only channels
+        image_tasks = [self.fetch_messages(channel, is_image_channel=True) for channel in self.image_channels.values()]
+
+        # Run tasks concurrently
+        await asyncio.gather(*text_tasks, *image_tasks)
 
         await self.client.disconnect()
         logging.info("Scraping completed and client disconnected.")
@@ -83,8 +93,12 @@ class TelegramScraper:
             logging.error(f"Error writing to {filename}: {e}")
 
     async def download_image(self, message):
-        """Downloads media from a message."""
+        """Downloads only image files from a message."""
         try:
+            if message.file and message.file.ext not in ['.jpg', '.png', '.jpeg', '.gif', '.webp']:
+                logging.info(f"Skipping non-image file: {message.file.name}")
+                return  # Ignore non-image files (e.g., .mp4, .pdf)
+
             file_path = await message.download_media(self.image_folder)
             logging.info(f"Downloaded image to {file_path}")
         except Exception as e:
@@ -93,8 +107,3 @@ class TelegramScraper:
     async def run(self):
         """Runs the scraper."""
         await self.scrape_all_channels()
-
-# Example Usage
-# if __name__ == "__main__":
-#     scraper = TelegramScraper()
-#     asyncio.run(scraper.run())
