@@ -35,11 +35,10 @@ class DatabaseHandler:
             cursor.execute(create_table_query)
             conn.commit()
 
-            # Insert data
+            # Insert data using parameterized queries
+            insert_query = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ({', '.join(['%s'] * len(df.columns))});"
             for _, row in df.iterrows():
-                values = "', '".join(str(value) for value in row)
-                insert_query = f"INSERT INTO {table_name} ({', '.join(df.columns)}) VALUES ('{values}');"
-                cursor.execute(insert_query)
+                cursor.execute(insert_query, tuple(row))
 
             conn.commit()
             cursor.close()
