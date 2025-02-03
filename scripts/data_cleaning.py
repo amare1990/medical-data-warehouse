@@ -5,6 +5,8 @@ import pandas as pd
 import re
 import sqlite3
 
+import subprocess
+
 
 class DataProcessor:
     def __init__(self, raw_data_path='../data/scraped_data.csv', cleaned_data_path='../data/cleaned_data.csv', db_path='../data/medical_data.db'):
@@ -101,3 +103,11 @@ class DataProcessor:
             logging.info(f"Data stored in database at {self.db_path} (Table: {table_name})")
         except Exception as e:
             logging.error(f"Error storing data in database: {e}")
+
+    def setup_dbt(self):
+        """Initializes a DBT project."""
+        try:
+            subprocess.run(["dbt", "init", "my_project"], check=True)
+            logging.info("DBT project initialized successfully.")
+        except Exception as e:
+            logging.error(f"Error initializing DBT: {e}")
