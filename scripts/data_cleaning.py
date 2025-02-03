@@ -8,7 +8,7 @@ import sqlite3
 import subprocess
 
 # Import database_setup module
-from database_setup import DatabaseHandler
+from scripts.database_setup import DatabaseHandler
 
 
 class DataProcessor:
