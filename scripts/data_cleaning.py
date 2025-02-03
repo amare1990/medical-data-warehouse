@@ -133,4 +133,13 @@ class DataProcessor:
             subprocess.run(["dbt", "test"], check=True)
             logging.info("DBT tests completed successfully.")
         except Exception as e:
-            logging.error(f"Error testing DBT models: {e}"
+            logging.error(f"Error testing DBT models: {e}")
+
+    def generate_dbt_docs(self):
+        """Generates and serves DBT documentation."""
+        try:
+            subprocess.run(["dbt", "docs", "generate"], check=True)
+            subprocess.run(["dbt", "docs", "serve"], check=True)
+            logging.info("DBT documentation generated and served successfully.")
+        except Exception as e:
+            logging.error(f"Error generating DBT docs: {e}")
