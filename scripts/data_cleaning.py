@@ -118,3 +118,11 @@ class DataProcessor:
             logging.error(f"❌ DBT initialization failed: {e}")
         except Exception as e:
             logging.error(f"❌ Unexpected error during DBT initialization: {e}")
+
+    def run_dbt_models(self):
+        """Runs the DBT models to transform data."""
+        try:
+            subprocess.run(["dbt", "run"], check=True)
+            logging.info("DBT models executed successfully.")
+        except Exception as e:
+            logging.error(f"Error running DBT models: {e}")
