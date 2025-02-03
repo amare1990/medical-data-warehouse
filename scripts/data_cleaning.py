@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 
 import re
+import sqlite3
 
 
 class DataProcessor:
@@ -86,3 +87,17 @@ class DataProcessor:
             logging.info(f"Cleaned data saved to {self.cleaned_data_path}")
         else:
             logging.error("No data to save.")
+
+    def store_in_db(self, df, table_name="medical_data"):
+        """Stores the cleaned data in an SQLite database."""
+        if df is None:
+            logging.error("No data to store in the database.")
+            return
+
+        try:
+            conn = sqlite3.connect(self.db_path)
+            df.to_sql(table_name, conn, if_exists="replace", index=False)
+            conn.close()
+            logging.info(f"Data stored in database at {self.db_path} (Table: {table_name})")
+        except Exception as e:
+            logging.error(f"Error storing data in database: {e}")
