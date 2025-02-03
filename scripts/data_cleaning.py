@@ -143,3 +143,14 @@ class DataProcessor:
             logging.info("DBT documentation generated and served successfully.")
         except Exception as e:
             logging.error(f"Error generating DBT docs: {e}")
+
+    def process_data(self):
+        """Main method to run the full data processing pipeline."""
+        df = self.load_data()
+        cleaned_df = self.clean_data(df)
+        self.save_cleaned_data(cleaned_df)
+        self.store_in_db(cleaned_df)
+        self.setup_dbt()
+        self.run_dbt_models()
+        self.test_dbt_models()
+        self.generate_dbt_docs()
