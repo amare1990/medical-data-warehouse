@@ -126,3 +126,11 @@ class DataProcessor:
             logging.info("DBT models executed successfully.")
         except Exception as e:
             logging.error(f"Error running DBT models: {e}")
+
+    def test_dbt_models(self):
+        """Runs DBT tests to validate transformations."""
+        try:
+            subprocess.run(["dbt", "test"], check=True)
+            logging.info("DBT tests completed successfully.")
+        except Exception as e:
+            logging.error(f"Error testing DBT models: {e}"
