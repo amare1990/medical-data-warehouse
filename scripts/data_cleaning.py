@@ -7,6 +7,9 @@ import sqlite3
 
 import subprocess
 
+# Import database_setup module
+from database_setup import DatabaseHandler
+
 
 class DataProcessor:
     def __init__(self, raw_data_path='../data/scraped_data.csv', cleaned_data_path='../data/cleaned_data.csv', db_path='../data/medical_data.db'):
@@ -20,6 +23,9 @@ class DataProcessor:
         self.raw_data_path = raw_data_path
         self.cleaned_data_path = cleaned_data_path
         self.db_path = db_path
+
+        """Initialize DataProcessor and DatabaseHandler"""
+        self.db_handler = DatabaseHandler()  # Initialize the database connection
 
         # Ensure data directory exists
         os.makedirs(os.path.dirname(self.cleaned_data_path), exist_ok=True)
@@ -91,23 +97,24 @@ class DataProcessor:
             logging.error("No data to save.")
 
     def store_in_db(self, df, table_name="medical_data"):
-        """Stores the cleaned data in an SQLite database."""
-        if df is None:
+        """Stores the cleaned data in a PostgreSQL database using DatabaseHandler."""
+        if df is None or df.empty:
             logging.error("No data to store in the database.")
             return
 
         try:
-            conn = sqlite3.connect(self.db_path)
-            df.to_sql(table_name, conn, if_exists="replace", index=False)
-            conn.close()
-            logging.info(f"Data stored in database at {self.db_path} (Table: {table_name})")
+            # Use the database handler to store data
+            self.db_handler.store_in_db(df, table_name)
+            logging.info(f"Data successfully stored in PostgreSQL (Table: {table_name})")
         except Exception as e:
-            logging.error(f"Error storing data in database: {e}")
+            logging.error(f"Error storing data in PostgreSQL: {e}")
 
     def setup_dbt(self):
-        """Initializes a DBT project."""
+        """Initializes a DBT project using the name from .env."""
         try:
-            subprocess.run(["dbt", "init", "my_project"], check=True)
-            logging.info("DBT project initialized successfully.")
+            subprocess.run(["dbt", "init", self.db_handler.dbt_project_name], check=True)
+            logging.info(f"✅ DBT project '{self.db_handler.dbt_project_name}' initialized successfully.")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"❌ DBT initialization failed: {e}")
         except Exception as e:
-            logging.error(f"Error initializing DBT: {e}")
+            logging.error(f"❌ Unexpected error during DBT initialization: {e}")
