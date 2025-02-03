@@ -78,3 +78,11 @@ class DataProcessor:
         except Exception as e:
             logging.error(f"Error during data cleaning: {e}")
             return None
+
+    def save_cleaned_data(self, df):
+        """Saves the cleaned data to a CSV file."""
+        if df is not None:
+            df.to_csv(self.cleaned_data_path, index=False)
+            logging.info(f"Cleaned data saved to {self.cleaned_data_path}")
+        else:
+            logging.error("No data to save.")
