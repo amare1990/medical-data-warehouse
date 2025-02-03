@@ -23,3 +23,10 @@ logs/
 my_project/
 dbt_modules/
 dbt.log
+
+# Ignore profiles.yml
+profiles.yml
+
+# Add this line to your .gitignore
+.user.yml
+
