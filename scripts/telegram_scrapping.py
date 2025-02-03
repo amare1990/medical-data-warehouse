@@ -78,21 +78,22 @@ class TelegramScraper:
             logging.error(f"Error fetching messages from {channel}: {e}")
 
     async def scrape_all_channels(self):
-        """Scrapes all text and image channels asynchronously."""
-        await self.client.start()
-        logging.info("Telegram client started.")
+      """Scrapes all text and image channels asynchronously."""
+      try:
+          await self.client.start()
+          logging.info("Telegram client started.")
 
-        # Create tasks for text-only channels
-        text_tasks = [self.fetch_messages(channel) for channel in self.text_channels]
+          text_tasks = [self.fetch_messages(channel) for channel in self.text_channels]
+          image_tasks = [self.fetch_messages(channel, is_image_channel=True) for channel in self.image_channels.values()]
 
-        # Create tasks for image-only channels
-        image_tasks = [self.fetch_messages(channel, is_image_channel=True) for channel in self.image_channels.values()]
+          await asyncio.gather(*text_tasks, *image_tasks)
 
-        # Run tasks concurrently
-        await asyncio.gather(*text_tasks, *image_tasks)
+      except Exception as e:
+          logging.error(f"Error connecting to Telegram: {e}")
+      finally:
+          await self.client.disconnect()
+          logging.info("Scraping completed and client disconnected.")
 
-        await self.client.disconnect()
-        logging.info("Scraping completed and client disconnected.")
 
     def store_data(self, channel, data):
         """Stores text messages in a file per channel."""
@@ -117,6 +118,10 @@ class TelegramScraper:
 
     def append_scraped_data(self):
         """Reads all scraped files, appends data, and stores in a structured format."""
+        if not os.path.exists(self.text_data_folder):
+            logging.warning("Text data folder not found! Creating an empty dataset.")
+            return
+
         all_files = [f for f in os.listdir(self.text_data_folder) if f.endswith(".txt")]
 
         if not all_files:
@@ -131,7 +136,6 @@ class TelegramScraper:
                 with open(file_path, "r", encoding="utf-8") as f:
                     messages = f.readlines()
 
-                # Append data in structured format
                 for msg in messages:
                     self.data.append({"channel": channel_name, "message": msg.strip()})
 
@@ -142,6 +146,8 @@ class TelegramScraper:
 
     def save_to_csv(self):
         """Saves the aggregated scraped data into a CSV file."""
+        self.merged_file = os.path.join(self.base_data_folder, "scraped_data.csv")
+
         if not self.data:
             logging.warning("No data available to save!")
             return
