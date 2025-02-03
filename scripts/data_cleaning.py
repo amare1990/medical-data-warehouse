@@ -22,3 +22,13 @@ class DataProcessor:
 
         # Set up logging
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    def load_data(self):
+        """Loads raw data from CSV into a Pandas DataFrame."""
+        try:
+            df = pd.read_csv(self.raw_data_path)
+            logging.info(f"Successfully loaded raw data from {self.raw_data_path}")
+            return df
+        except Exception as e:
+            logging.error(f"Error loading data: {e}")
+            return None
