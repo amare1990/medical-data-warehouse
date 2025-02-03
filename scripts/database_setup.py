@@ -12,6 +12,7 @@ class DatabaseHandler:
         """Initialize PostgreSQL connection using credentials from .env"""
         self.db_url = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@" \
                       f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+        self.dbt_project_name = os.getenv("DBT_PROJECT_NAME", "my_project")
 
     def store_in_db(self, df, table_name="medical_data"):
         """Stores the cleaned data in a PostgreSQL database."""
