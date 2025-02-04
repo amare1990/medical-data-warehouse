@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import cv2
 import torch
 # import tensorflow as tf
@@ -90,15 +91,24 @@ class YoloObjectDetection:
         logging.info(message)
 
 
-    def store_to_database(self, processed_data, db_connection):
+    def store_to_database(self, processed_data, db_handler, table_name="detection_results"):
         """
-        Store the processed detection results into a database.
+        Store the processed detection results into a PostgreSQL database using DatabaseHandler.
         """
         try:
-            for data in processed_data:
-                db_connection.add_data(data)
-            db_connection.commit()
+            if not processed_data:
+                self.log_detection("No data to store in the database.")
+                return
+
+            # Convert processed data into a Pandas DataFrame
+            df = pd.DataFrame(processed_data)
+
+            # Store data using DatabaseHandler
+            db_handler.store_in_db(df, table_name=table_name)
+
             self.log_detection(f"Stored {len(processed_data)} detection results to the database.")
+
         except Exception as e:
             self.log_detection(f"Error storing data: {str(e)}")
+
 
