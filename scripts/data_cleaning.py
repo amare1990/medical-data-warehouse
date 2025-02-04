@@ -122,6 +122,9 @@ class DataProcessor:
     def run_dbt_models(self):
         """Runs the DBT models to transform data."""
         try:
+            # Change the working directory to the dbt folder inside my_project
+            dbt_project_dir = "/home/am//Documents/Software Development/10_Academy Training/week7/medical-data-warehouse/my_project"
+            os.chdir(dbt_project_dir)
             subprocess.run(["dbt", "run"], check=True)
             logging.info("DBT models executed successfully.")
         except Exception as e:
@@ -130,19 +133,31 @@ class DataProcessor:
     def test_dbt_models(self):
         """Runs DBT tests to validate transformations."""
         try:
+            # Change the working directory to the dbt folder inside my_project
+            dbt_project_dir = "/home/am//Documents/Software Development/10_Academy Training/week7/medical-data-warehouse/my_project"
+            os.chdir(dbt_project_dir)
             subprocess.run(["dbt", "test"], check=True)
             logging.info("DBT tests completed successfully.")
         except Exception as e:
             logging.error(f"Error testing DBT models: {e}")
 
+
+
     def generate_dbt_docs(self):
         """Generates and serves DBT documentation."""
         try:
+            # Change the working directory to the dbt folder inside my_project
+            dbt_project_dir = "/home/am//Documents/Software Development/10_Academy Training/week7/medical-data-warehouse/my_project"
+            os.chdir(dbt_project_dir)
+
+            # Run the dbt commands to generate and serve docs
             subprocess.run(["dbt", "docs", "generate"], check=True)
             subprocess.run(["dbt", "docs", "serve"], check=True)
+
             logging.info("DBT documentation generated and served successfully.")
         except Exception as e:
             logging.error(f"Error generating DBT docs: {e}")
+
 
     def process_data(self):
         """Main method to run the full data processing pipeline."""
