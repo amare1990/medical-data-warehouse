@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+import numpy as np
 import logging
 import asyncio
 from telethon import TelegramClient
@@ -30,6 +32,7 @@ class TelegramScraper:
         self.download_folder = os.path.join(self.base_data_folder, "downloads")
         self.text_data_folder = os.path.join(self.base_data_folder, "scraped_data")
         self.image_folder = os.path.join(self.base_data_folder, "images")
+        self.merged_file = os.path.join(self.base_data_folder, "scraped_data.csv")  # Fixed
 
         # Ensure folders exist
         os.makedirs(self.download_folder, exist_ok=True)
@@ -37,13 +40,11 @@ class TelegramScraper:
         os.makedirs(self.image_folder, exist_ok=True)
 
         # Channels to scrape (only specified ones)
-        # Channels to scrape images from
         self.image_channels = {
             'Chemed_Telegram_Channel': 'Chemed',
             'lobelia4cosmetics': 'lobelia4cosmetics'
         }
 
-        # All channels for text messages (optional)
         self.text_channels = [
             'DoctorsET',
             'yetenaweg',
@@ -66,6 +67,7 @@ class TelegramScraper:
 
             for message in messages:
                 if message.text and not is_image_channel:
+                    self.data.append({"channel": channel, "message": message.text.strip()})
                     self.store_data(channel, message.text)
 
                 if message.media and is_image_channel:
@@ -76,21 +78,22 @@ class TelegramScraper:
             logging.error(f"Error fetching messages from {channel}: {e}")
 
     async def scrape_all_channels(self):
-        """Scrapes all text and image channels asynchronously."""
-        await self.client.start()
-        logging.info("Telegram client started.")
+      """Scrapes all text and image channels asynchronously."""
+      try:
+          await self.client.start()
+          logging.info("Telegram client started.")
 
-        # Create tasks for text-only channels
-        text_tasks = [self.fetch_messages(channel) for channel in self.text_channels]
+          text_tasks = [self.fetch_messages(channel) for channel in self.text_channels]
+          image_tasks = [self.fetch_messages(channel, is_image_channel=True) for channel in self.image_channels.values()]
 
-        # Create tasks for image-only channels
-        image_tasks = [self.fetch_messages(channel, is_image_channel=True) for channel in self.image_channels.values()]
+          await asyncio.gather(*text_tasks, *image_tasks)
 
-        # Run tasks concurrently
-        await asyncio.gather(*text_tasks, *image_tasks)
+      except Exception as e:
+          logging.error(f"Error connecting to Telegram: {e}")
+      finally:
+          await self.client.disconnect()
+          logging.info("Scraping completed and client disconnected.")
 
-        await self.client.disconnect()
-        logging.info("Scraping completed and client disconnected.")
 
     def store_data(self, channel, data):
         """Stores text messages in a file per channel."""
@@ -112,6 +115,59 @@ class TelegramScraper:
             logging.info(f"Downloaded image to {file_path}")
         except Exception as e:
             logging.error(f"Error downloading image: {e}")
+
+    def append_scraped_data(self):
+        """Reads all scraped files, appends data, and stores in a structured format."""
+        if not os.path.exists(self.text_data_folder):
+            logging.warning("Text data folder not found! Creating an empty dataset.")
+            return
+
+        all_files = [f for f in os.listdir(self.text_data_folder) if f.endswith(".txt")]
+
+        if not all_files:
+            logging.warning("No scraped files found!")
+            return None
+
+        for file in all_files:
+            channel_name = file.replace(".txt", "")  # Extract channel name
+            file_path = os.path.join(self.text_data_folder, file)
+
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    messages = f.readlines()
+
+                for msg in messages:
+                    self.data.append({"channel": channel_name, "message": msg.strip()})
+
+                logging.info(f"Appended {len(messages)} messages from {channel_name}")
+
+            except Exception as e:
+                logging.error(f"Error reading {file_path}: {e}")
+
+    def save_to_csv(self):
+        """Saves the aggregated scraped data into a CSV file."""
+        self.merged_file = os.path.join(self.base_data_folder, "scraped_data.csv")
+
+        if not self.data:
+            logging.warning("No data available to save!")
+            return
+
+        df = pd.DataFrame(self.data)
+        df.to_csv(self.merged_file, index=False)
+        logging.info(f"Saved {len(df)} messages to {self.merged_file}")
+
+    def get_dataframe(self):
+        """Returns the aggregated data as a Pandas DataFrame."""
+        if not self.data:
+            logging.warning("No data available!")
+            return None
+
+        return pd.DataFrame(self.data)
+
+    def process_scraped_data(self):
+        """Executes the full pipeline: appending data and saving it in CSV format."""
+        self.append_scraped_data()
+        self.save_to_csv()
 
     async def run(self):
         """Runs the scraper."""
