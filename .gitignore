@@ -33,5 +33,10 @@ profiles.yml
 # Ignore YOLO5
 yolov5/
 
-notebooks/object_detection.ipynb
-notebooks/yolov5s.pt
+# Ignore log files
+detection_log.log
+notebooks/detection_log.log
+
+# Ignore large model files
+*.pt
+
