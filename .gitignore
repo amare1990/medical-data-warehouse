@@ -30,3 +30,5 @@ profiles.yml
 # Add this line to your .gitignore
 .user.yml
 
+# Ignore YOLO5
+yolov5/
