@@ -6,6 +6,7 @@ import nest_asyncio
 nest_asyncio.apply()
 
 from scripts.telegram_scrapping import TelegramScraper
+from scripts.data_cleaning import DataProcessor
 
 
 if __name__ == '__main__':
@@ -18,3 +19,10 @@ if __name__ == '__main__':
 
   asyncio.run(scraper.run())  # Scrape messages asynchronously
   scraper.process_scraped_data()  # Save data in CSV format
+
+
+  """
+  Data cleaning and transformation
+  """
+  processor = DataProcessor()
+  processor.process_data()
