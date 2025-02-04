@@ -1,3 +1,4 @@
+import os
 import cv2
 import torch
 # import tensorflow as tf
@@ -15,25 +16,55 @@ class YoloObjectDetection:
         Load the YOLO model depending on the specified model type (PyTorch or TensorFlow).
         """
         if self.model_type == 'yolov5':
-            return torch.hub.load('ultralytics/yolov5', 'yolov5s')  # for PyTorch-based YOLO
-        elif self.model_type == 'tensorflow':
-            return tf.saved_model.load("yolov4")  # for TensorFlow-based YOLO
+            return torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)  # for PyTorch-based YOLO
+        # elif self.model_type == 'tensorflow':
+        #     return tf.saved_model.load("yolov4")  # for TensorFlow-based YOLO
         else:
             raise ValueError("Unsupported model type. Choose 'yolov5' or 'tensorflow'.")
 
-    def detect_objects(self, image_path):
+    def detect_objects(self, image_folder="../data/images/"):
         """
-        Perform object detection on an image.
+        Perform object detection on all images in the given folder.
         """
-        img = cv2.imread(image_path)
-        results = self.model(img)
-        self.detection_results = results.pandas().xywh  # Extracting detection results as pandas DataFrame
-        return self.detection_results
+        if not os.path.exists(image_folder):
+            print(f"The folder {image_folder} does not exist!")
+            return []
+
+        image_files = [f for f in os.listdir(image_folder) if f.endswith((".jpg", ".png", ".jpeg"))]
+
+        if not image_files:
+            print(f"No images found in {image_folder}.")
+            return []
+
+        all_results = {}
+
+        for image_file in image_files:
+            image_path = os.path.join(image_folder, image_file)
+            print(f"Processing: {image_path}")
+
+            img = cv2.imread(image_path)
+            if img is None:
+                print(f"Error: Could not read {image_path}. Skipping.")
+                continue
+
+            print("Image loaded successfully using cv2.")
+
+            results = self.model(img)
+            print(f"Results from model: {results}")
+
+            self.detection_results = results.pandas().xyxy[0]  # Extract detection results as DataFrame
+            all_results[image_file] = self.process_detection_results()
+
+        return all_results  # Dictionary with image names as keys and detection results as values
 
     def process_detection_results(self):
         """
         Extract relevant information such as bounding box, confidence score, and class label.
         """
+        if self.detection_results is None or self.detection_results.empty:
+            print("No objects detected!")
+            return []
+
         processed_data = []
         for _, row in self.detection_results.iterrows():
             data = {
@@ -47,7 +78,9 @@ class YoloObjectDetection:
                 }
             }
             processed_data.append(data)
+
         return processed_data
+
 
     def log_detection(self, message):
         """
