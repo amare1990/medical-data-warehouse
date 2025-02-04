@@ -30,3 +30,22 @@ class YoloObjectDetection:
         self.detection_results = results.pandas().xywh  # Extracting detection results as pandas DataFrame
         return self.detection_results
 
+    def process_detection_results(self):
+        """
+        Extract relevant information such as bounding box, confidence score, and class label.
+        """
+        processed_data = []
+        for _, row in self.detection_results.iterrows():
+            data = {
+                "class": row["name"],
+                "confidence": row["confidence"],
+                "bbox": {
+                    "x_min": row["xmin"],
+                    "y_min": row["ymin"],
+                    "x_max": row["xmax"],
+                    "y_max": row["ymax"]
+                }
+            }
+            processed_data.append(data)
+        return processed_data
+
