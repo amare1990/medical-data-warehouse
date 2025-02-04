@@ -20,3 +20,13 @@ class YoloObjectDetection:
             return tf.saved_model.load("yolov4")  # for TensorFlow-based YOLO
         else:
             raise ValueError("Unsupported model type. Choose 'yolov5' or 'tensorflow'.")
+
+    def detect_objects(self, image_path):
+        """
+        Perform object detection on an image.
+        """
+        img = cv2.imread(image_path)
+        results = self.model(img)
+        self.detection_results = results.pandas().xywh  # Extracting detection results as pandas DataFrame
+        return self.detection_results
+
