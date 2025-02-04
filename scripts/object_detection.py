@@ -49,3 +49,10 @@ class YoloObjectDetection:
             processed_data.append(data)
         return processed_data
 
+    def log_detection(self, message):
+        """
+        Implement logging functionality.
+        """
+        logging.basicConfig(filename='detection_log.log', level=logging.INFO)
+        logging.info(message)
+
