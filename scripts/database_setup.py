@@ -14,11 +14,22 @@ class DatabaseHandler:
                       f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
         self.dbt_project_name = os.getenv("DBT_PROJECT_NAME", "my_project")
 
-    def store_in_db(self, df, table_name="medical_data"):
+    def store_in_db(self, df, table_name="medical_data", default_id_value=100000):
         """Stores the cleaned data in a PostgreSQL database."""
         if df is None or df.empty:
             logging.error("No data to store in the database.")
             return
+
+        # Ensure no null values in important columns, e.g., 'id'
+        if 'id' in df.columns:
+            # Fill NULL 'id' with a default value
+            df['id'] = df['id'].fillna(default_id_value)  # Use passed argument
+            # Option 2: Drop rows where 'id' is NULL
+            # df = df.dropna(subset=['id'])  # Drop rows where 'id' is NULL
+
+        # Fill or drop other important columns (if needed)
+        if 'my_first_dbt_model_id' in df.columns:
+            df['my_first_dbt_model_id'] = df['my_first_dbt_model_id'].fillna(default_id_value)  # Adjust as needed
 
         try:
             # Connect to PostgreSQL
