@@ -32,3 +32,6 @@ profiles.yml
 
 # Ignore YOLO5
 yolov5/
+
+notebooks/object_detection.ipynb
+notebooks/yolov5s.pt
