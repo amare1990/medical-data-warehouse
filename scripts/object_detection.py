@@ -56,3 +56,16 @@ class YoloObjectDetection:
         logging.basicConfig(filename='detection_log.log', level=logging.INFO)
         logging.info(message)
 
+
+    def store_to_database(self, processed_data, db_connection):
+        """
+        Store the processed detection results into a database.
+        """
+        try:
+            for data in processed_data:
+                db_connection.add_data(data)
+            db_connection.commit()
+            self.log_detection(f"Stored {len(processed_data)} detection results to the database.")
+        except Exception as e:
+            self.log_detection(f"Error storing data: {str(e)}")
+
