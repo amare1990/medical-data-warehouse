@@ -30,3 +30,13 @@ profiles.yml
 # Add this line to your .gitignore
 .user.yml
 
+# Ignore YOLO5
+yolov5/
+
+# Ignore log files
+detection_log.log
+notebooks/detection_log.log
+
+# Ignore large model files
+*.pt
+

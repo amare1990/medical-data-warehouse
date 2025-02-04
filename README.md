@@ -53,6 +53,16 @@ You can clone my project and use it freely, then contribute to this project.
 
 Telegram Scraping is a component of the Medical Data Warehouse project, designed to extract relevant medical and cosmetic product information from selected Telegram channels. The scraper leverages Telethon for Telegram API interaction, efficiently fetching text messages and downloading images while filtering out non-image media. The extracted data is systematically stored in a structured format for further analysis and integration into the data warehouse.
 
+### Data Cleaning and Transformation
+
+
+### Object Detection Using YOLO5
+- To setup YOLO, run the following commands.
+  - git clone https://github.com/ultralytics/yolov5.git
+  - cd yolov5
+  - pip install -r requirements.txt
+
+
 ### Future Works
 - Data cleaning and transformation
 - Conducting Exploratory data analysis on data scrapped
