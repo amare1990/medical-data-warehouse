@@ -2,31 +2,21 @@
 Exposing data using fast api
 """
 
-from fastapi import FastAPI
-from pydantic import BaseModel
-from database import Database
-from crud import create_detection_data, get_detection_data
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from database import get_db, init_db
+import crud, schemas
+
+# Initialize database tables (Run this once at startup)
+init_db()
 
 app = FastAPI()
 
-class DetectionDataSchema(BaseModel):
-  class_name: str
-  confidence: float
-  bbox: dict
+@app.post("/detection_data/", response_model=schemas.DetectionDataSchema)
+def create_data(detection_data: schemas.DetectionDataSchema, db: Session = Depends(get_db)):
+    return crud.create_detection_data(db, detection_data)
 
+@app.get("/detection_data/", response_model=list[schemas.DetectionDataSchema])
+def get_data(db: Session = Depends(get_db)):
+    return crud.get_detection_data(db)
 
-@app.post("/add-detection/")
-async def add_detection(data: DetectionDataSchema):
-    try:
-        create_detection_data(data.dict())
-        return {"message": "Detection data added successfully!"}
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.get("/get-detection/")
-async def get_detections():
-    try:
-        detections = get_detection_data()
-        return {"detections": detections}
-    except Exception as e:
-        return {"error": str(e)}
