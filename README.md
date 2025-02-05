@@ -23,7 +23,7 @@ You can clone my project and use it freely, then contribute to this project.
    - `myenv\Scripts\activate` on windows os command prompt if you use windows os.
 
 - After that you have to install all the necessary Python libraries and tools by running `pip install -r requirements.txt`
-- To automate the workflow and execute at a time, run the `python main/main.py` from the root directory of the repo or can be used for running the entire pipeline end-to-end without manual intervention.
+- To automate the workflow and execute at a time, run the `python src/src.py` from the root directory of the repo or can be used for running the entire pipeline end-to-end without manual intervention.
 - To run this project and experiment with individual components of the workflow, open `jupyter notebook` command from the main directory of the repo and run it.
 
 ### Prerequisites
