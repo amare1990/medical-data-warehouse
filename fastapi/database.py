@@ -25,6 +25,7 @@ class DetectionData(Base):
     confidence = Column(Float)
     bbox = Column(JSON)
 
+
 def init_db():
     """Create tables in the PostgreSQL database if they don't exist"""
     Base.metadata.create_all(bind=engine)
